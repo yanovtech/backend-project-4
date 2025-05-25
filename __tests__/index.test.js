@@ -1,18 +1,24 @@
 import path from 'path'
-import pageLoader from '../src/index.js'
+import { pageLoader } from '../src/index.js'
 import nock from 'nock'
 import fsp from 'fs/promises'
 import os from 'os'
+import { fileURLToPath } from 'url'
 
-nock.disableNetConnect()
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
+const getFixturePath = name => path.join(dirname, '..', '__fixtures__', name)
 
 const testDir = os.tmpdir()
 const testFile = path.join(testDir, 'ru-hexlet-io-courses.html')
 
+nock.disableNetConnect()
+
 beforeEach(async () => await fsp.unlink(testFile).catch(() => {}))
 
 test('pageLoader', async () => {
-  const expectedBody = await fsp.readFile(`${process.cwd()}/__fixtures__/before.html`, 'utf-8')
+  const expectedBodyPath = getFixturePath('before.html')
+  const expectedBody = await fsp.readFile(expectedBodyPath, 'utf-8')
   nock('https://ru.hexlet.io')
     .get('/courses')
     .reply(200, expectedBody)
