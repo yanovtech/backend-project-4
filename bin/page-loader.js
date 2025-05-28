@@ -12,6 +12,6 @@ program
   .arguments('<url>')
   .action((url, options) => {
     pageLoader(url, options.output)
-      .then(() => console.log(`open ${options.output}/${makeFileName(url)}`))
+      .then(() => console.log(`open ${options.output}/${makeFileName(url, '.html')}`))
   })
   .parse()
