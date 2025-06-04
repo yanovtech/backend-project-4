@@ -55,7 +55,7 @@ const makeFile = (fileName, data) => fsp.writeFile(fileName, data)
 const makeDir = dirName => fsp.mkdir(dirName)
 
 const downloadImg = (url, imgName) => {
-  axios({ method: 'get', url: url, responseType: 'stream' })
+  return axios({ method: 'get', url: url, responseType: 'stream' })
     .then(({ data }) => {
       const writer = fs.createWriteStream(imgName)
       return new Promise((resolve, reject) => {
@@ -69,8 +69,6 @@ const downloadImg = (url, imgName) => {
 export const pageLoader = (url, dir) => {
   const htmlFileName = makeFileName(url, '.html')
   const assetsDirName = makeFileName(url, '_files')
-  // let originalHtml
-  // let updatedHtml
 
   return makeRequest(url)
     .then(({ data }) => {
