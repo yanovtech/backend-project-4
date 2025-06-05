@@ -1,5 +1,5 @@
 import path from 'path'
-import { pageLoader } from '../src/index.js'
+import pageLoader from '../src/index.js'
 import nock from 'nock'
 import fsp from 'fs/promises'
 import os from 'os'

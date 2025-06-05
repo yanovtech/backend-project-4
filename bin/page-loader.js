@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
-import { makeFileName, pageLoader } from '../src/index.js'
+import pageLoader from '../src/index.js'
+import { makeFileName } from '../src/utils/fileUtils.js'
 
 const program = new Command()
 
