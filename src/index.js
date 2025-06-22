@@ -13,10 +13,13 @@ export default (url, dir) => {
       const resources = getLocalResources(originalHtml, url)
       const updatedHtml = updateResourceLinks(originalHtml, url, assetsDirName)
 
-      const saveHtml = makeFile(path.join(dir, htmlFileName), updatedHtml)
-      const createAssetsDir = makeDir(path.join(dir, assetsDirName))
+      const htmlPath = path.join(dir, htmlFileName)
+      const assetsPath = path.join(dir, assetsDirName)
 
-      return Promise.all([saveHtml, createAssetsDir]).then(() => resources)
+      return Promise.all([
+        makeFile(htmlPath, updatedHtml),
+        makeDir(assetsPath),
+      ]).then(() => resources)
     })
     .then((resources) => {
       return Promise.all(resources.map(({ link }) => {

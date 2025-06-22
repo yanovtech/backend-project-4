@@ -2,28 +2,30 @@ import * as cheerio from 'cheerio'
 import path from 'path'
 import { makeFileName } from './fileUtils.js'
 
+const supportedTags = [
+  { tag: 'img', attr: 'src' },
+  { tag: 'script', attr: 'src' },
+  { tag: 'link', attr: 'href' },
+]
+
 const getLocalResources = (html, baseUrl) => {
   const $ = cheerio.load(html)
-  const tags = [
-    { tag: 'img', attr: 'src' },
-    { tag: 'script', attr: 'src' },
-    { tag: 'link', attr: 'href' },
-  ]
+  const baseOrigin = new URL(baseUrl).origin
 
   const resources = []
 
-  tags.forEach(({ tag, attr }) => {
+  supportedTags.forEach(({ tag, attr }) => {
     $(tag).each((_, el) => {
-      const rawLink = $(el).attr(attr)
-      if (rawLink) {
-        const absUrl = new URL(rawLink, baseUrl)
-        if (absUrl.origin === new URL(baseUrl).origin) {
-          resources.push({
-            tag,
-            attr,
-            link: absUrl.href,
-          })
-        }
+      const raw = $(el).attr(attr)
+      if (!raw) return
+
+      const absoluteUrl = new URL(raw, baseUrl)
+      if (absoluteUrl.origin === baseOrigin) {
+        resources.push({
+          tag,
+          attr,
+          link: absoluteUrl.href,
+        })
       }
     })
   })
@@ -31,23 +33,20 @@ const getLocalResources = (html, baseUrl) => {
   return resources
 }
 
-const updateResourceLinks = (html, baseUrl, assetsDir) => {
+const updateResourceLinks = (html, baseUrl, assetsDirName) => {
   const $ = cheerio.load(html)
-  const tags = [
-    { tag: 'img', attr: 'src' },
-    { tag: 'script', attr: 'src' },
-    { tag: 'link', attr: 'href' },
-  ]
+  const baseOrigin = new URL(baseUrl).origin
 
-  tags.forEach(({ tag, attr }) => {
+  supportedTags.forEach(({ tag, attr }) => {
     $(tag).each((_, el) => {
-      const rawLink = $(el).attr(attr)
-      if (rawLink) {
-        const absUrl = new URL(rawLink, baseUrl)
-        if (absUrl.origin === new URL(baseUrl).origin) {
-          const localFileName = makeFileName(absUrl.href)
-          $(el).attr(attr, path.join(assetsDir, localFileName))
-        }
+      const raw = $(el).attr(attr)
+      if (!raw) return
+
+      const absoluteUrl = new URL(raw, baseUrl)
+      if (absoluteUrl.origin === baseOrigin) {
+        const localFileName = makeFileName(absoluteUrl.href)
+        const localPath = path.join(assetsDirName, localFileName)
+        $(el).attr(attr, localPath)
       }
     })
   })

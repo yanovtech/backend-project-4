@@ -39,6 +39,8 @@ test('pageLoader', async () => {
     .get('/assets/professions/nodejs.png')
     .reply(200, imageData)
 
+  nock()
+
   await pageLoader('https://ru.hexlet.io/courses', tempDir)
 
   const testPic = await fsp.readFile(testPicPath)
