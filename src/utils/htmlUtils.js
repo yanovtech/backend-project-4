@@ -2,29 +2,57 @@ import * as cheerio from 'cheerio'
 import path from 'path'
 import { makeFileName } from './fileUtils.js'
 
-const getImagesLink = (html, url) => {
+const getLocalResources = (html, baseUrl) => {
   const $ = cheerio.load(html)
-  const imgSrcList = []
-  $('img').each((i, el) => {
-    const src = $(el).attr('src')
-    if (src) {
-      imgSrcList.push(src)
-    }
+  const tags = [
+    { tag: 'img', attr: 'src' },
+    { tag: 'script', attr: 'src' },
+    { tag: 'link', attr: 'href' },
+  ]
+
+  const resources = []
+
+  tags.forEach(({ tag, attr }) => {
+    $(tag).each((_, el) => {
+      const rawLink = $(el).attr(attr)
+      if (rawLink) {
+        const absUrl = new URL(rawLink, baseUrl)
+        if (absUrl.origin === new URL(baseUrl).origin) {
+          resources.push({
+            tag,
+            attr,
+            link: absUrl.href,
+          })
+        }
+      }
+    })
   })
-  return imgSrcList.map(imgSrc => new URL(imgSrc, url).href)
+
+  return resources
 }
 
-const updateImageSources = (html, url, dirName) => {
+const updateResourceLinks = (html, baseUrl, assetsDir) => {
   const $ = cheerio.load(html)
-  $('img').each((i, el) => {
-    const src = $(el).attr('src')
-    if (src) {
-      const absoluteUrl = new URL(src, url).href
-      const localFileName = makeFileName(absoluteUrl)
-      $(el).attr('src', path.join(dirName, localFileName))
-    }
+  const tags = [
+    { tag: 'img', attr: 'src' },
+    { tag: 'script', attr: 'src' },
+    { tag: 'link', attr: 'href' },
+  ]
+
+  tags.forEach(({ tag, attr }) => {
+    $(tag).each((_, el) => {
+      const rawLink = $(el).attr(attr)
+      if (rawLink) {
+        const absUrl = new URL(rawLink, baseUrl)
+        if (absUrl.origin === new URL(baseUrl).origin) {
+          const localFileName = makeFileName(absUrl.href)
+          $(el).attr(attr, path.join(assetsDir, localFileName))
+        }
+      }
+    })
   })
+
   return $.html()
 }
 
-export { getImagesLink, updateImageSources }
+export { getLocalResources, updateResourceLinks }

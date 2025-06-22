@@ -1,6 +1,6 @@
 import path from 'path'
 import { makeFile, makeDir, makeFileName } from './utils/fileUtils.js'
-import { getImagesLink, updateImageSources } from './utils/htmlUtils.js'
+import { getLocalResources, updateResourceLinks } from './utils/htmlUtils.js'
 import { downloadImg, makeRequest } from './utils/httpUtils.js'
 
 export default (url, dir) => {
@@ -10,20 +10,19 @@ export default (url, dir) => {
   return makeRequest(url)
     .then(({ data }) => {
       const originalHtml = data
-      const imgLinks = getImagesLink(originalHtml, url)
-      const updatedHtml = updateImageSources(originalHtml, url, assetsDirName)
+      const resources = getLocalResources(originalHtml, url)
+      const updatedHtml = updateResourceLinks(originalHtml, url, assetsDirName)
 
-      const saveHtmlPromise = makeFile(path.join(dir, htmlFileName), updatedHtml)
-      const makeAssetsDirPromise = makeDir(path.join(dir, assetsDirName))
+      const saveHtml = makeFile(path.join(dir, htmlFileName), updatedHtml)
+      const createAssetsDir = makeDir(path.join(dir, assetsDirName))
 
-      return Promise.all([saveHtmlPromise, makeAssetsDirPromise])
-        .then(() => imgLinks)
+      return Promise.all([saveHtml, createAssetsDir]).then(() => resources)
     })
-    .then((imgLinks) => {
-      return Promise.all(imgLinks.map((link) => {
-        const imgName = makeFileName(link)
-        const imgPath = path.join(dir, assetsDirName, imgName)
-        return downloadImg(link, imgPath)
+    .then((resources) => {
+      return Promise.all(resources.map(({ link }) => {
+        const fileName = makeFileName(link)
+        const filePath = path.join(dir, assetsDirName, fileName)
+        return downloadImg(link, filePath)
       }))
     })
     .catch(err => console.error('Error:', err))
