@@ -15,7 +15,13 @@ const testHTMLPath = path.join(tempDir, 'ru-hexlet-io-courses.html')
 const testDirPath = path.join(tempDir, 'ru-hexlet-io-courses_files')
 const testPicPath = path.join(testDirPath, 'ru-hexlet-io-assets-professions-nodejs.png')
 
+const normalizeHtml = html => cheerio.load(html).html().replace(/\s+/g, ' ').trim()
+
+nock.cleanAll()
 nock.disableNetConnect()
+nock.emitter.on('no match', (req) => {
+  console.error('NO MATCH:', req)
+})
 
 beforeEach(async () => {
   await fsp.unlink(testHTMLPath).catch(() => {})
@@ -32,21 +38,23 @@ test('pageLoader', async () => {
   const imageData = await fsp.readFile(imageDataPath)
 
   nock(baseUrl)
+    .persist()
     .get('/courses')
     .reply(200, expectedBody)
-
-  nock(baseUrl)
     .get('/assets/professions/nodejs.png')
     .reply(200, imageData)
+    .get('/assets/application.css')
+    .reply(200, 'done')
+    .get('/packs/js/runtime.js')
+    .reply(200, 'done')
 
-  nock()
-
-  await pageLoader('https://ru.hexlet.io/courses', tempDir)
+  await pageLoader('https://ru.hexlet.io/courses', tempDir, 'arraybuffer')
 
   const testPic = await fsp.readFile(testPicPath)
-  expect(imageData).toEqual(testPic)
+  expect(testPic).toEqual(imageData)
+
   const testHTML = await fsp.readFile(testHTMLPath, 'utf-8')
-  const expected = cheerio.load(expectedResult).html()
-  const actual = cheerio.load(testHTML).html()
-  expect(expected).toEqual(actual)
+  const expected = normalizeHtml(expectedResult)
+  const actual = normalizeHtml(testHTML)
+  expect(actual).toEqual(expected)
 })

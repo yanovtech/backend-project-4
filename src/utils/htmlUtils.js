@@ -51,6 +51,10 @@ const updateResourceLinks = (html, baseUrl, assetsDirName) => {
     })
   })
 
+  const pageFileName = makeFileName(baseUrl, '.html')
+  const canonicalPath = path.join(assetsDirName, pageFileName)
+  $('link[rel="canonical"]').attr('href', canonicalPath)
+
   return $.html()
 }
 

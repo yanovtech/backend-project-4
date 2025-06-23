@@ -3,7 +3,7 @@ import { makeFile, makeDir, makeFileName } from './utils/fileUtils.js'
 import { getLocalResources, updateResourceLinks } from './utils/htmlUtils.js'
 import { downloadImg, makeRequest } from './utils/httpUtils.js'
 
-export default (url, dir) => {
+export default (url, dir, responseType) => {
   const htmlFileName = makeFileName(url, '.html')
   const assetsDirName = makeFileName(url, '_files')
 
@@ -25,7 +25,7 @@ export default (url, dir) => {
       return Promise.all(resources.map(({ link }) => {
         const fileName = makeFileName(link)
         const filePath = path.join(dir, assetsDirName, fileName)
-        return downloadImg(link, filePath)
+        return downloadImg(link, filePath, responseType)
       }))
     })
     .catch(err => console.error('Error:', err))

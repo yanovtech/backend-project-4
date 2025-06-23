@@ -12,7 +12,7 @@ program
   .option('-o, --output [dir]', 'output dir', process.cwd())
   .arguments('<url>')
   .action((url, options) => {
-    pageLoader(url, options.output)
+    pageLoader(url, options.output, 'stream')
       .then(() => console.log(`open ${options.output}/${makeFileName(url, '.html')}`))
   })
   .parse()
