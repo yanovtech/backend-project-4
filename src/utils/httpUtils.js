@@ -2,8 +2,12 @@ import fs from 'fs'
 import fsp from 'fs/promises'
 import axios from 'axios'
 import path from 'path'
+import debug from 'debug'
+
+const debugAxios = debug('axios')
 
 const downloadImg = (url, imgName, responseType = 'arraybuffer') => {
+  debugAxios(`The download of the resource starts from ${url}`)
   return axios({ method: 'get', url, responseType }).then((response) => {
     return fsp.mkdir(path.dirname(imgName), { recursive: true }).then(() => {
       if (responseType === 'stream') {
@@ -21,6 +25,9 @@ const downloadImg = (url, imgName, responseType = 'arraybuffer') => {
   })
 }
 
-const makeRequest = url => axios({ method: 'get', url })
+const makeRequest = (url) => {
+  debugAxios(`Request for ${url}`)
+  return axios({ method: 'get', url })
+}
 
 export { downloadImg, makeRequest }
