@@ -19,8 +19,7 @@ const makeDir = (dirName) => {
 const makeFileName = (url, ext = '') => {
   const { hostname, pathname } = new URL(url)
   const normalizedPath = pathname === '/' ? '/index' : pathname
-  const fullPath = `${hostname}${normalizedPath}`
-  const name = fullPath.replace(/[^a-zA-Z0-9]/g, '-')
+  const name = `${hostname}${normalizedPath}`.replace(/[^a-zA-Z0-9]/g, '-')
   return `${name}${ext}`
 }
 
