@@ -24,14 +24,17 @@ export default (url, dir, responseType = 'arraybuffer') => {
       return Promise.all([
         makeFile(htmlPath, updatedHtml),
         makeDir(assetsPath),
-      ]).then(() => {
-        debugPageLoader(`Resources are being downloaded in ${assetsDirName}`)
-        return Promise.all(resources.map(({ link }) => {
-          const fileName = path.basename(link)
-          const filePath = path.join(assetsPath, fileName)
-          return downloadImg(link, filePath, responseType)
-        }))
-      })
+      ])
+        .then(() => {
+          debugPageLoader(`Resources are being downloaded in ${assetsDirName}`)
+          return Promise.all(
+            resources.map(({ link }) => {
+              const fileName = path.basename(link)
+              const filePath = path.join(assetsPath, fileName)
+              return downloadImg(link, filePath, responseType)
+            })
+          )
+        })
     })
     .catch((err) => {
       console.error('Error:', err)
