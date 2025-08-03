@@ -24,19 +24,8 @@ const makeFileName = (url, ext = '') => {
 }
 
 const makeResourceName = (baseUrl, resourceUrl) => {
-  const { hostname: baseHost, pathname: basePath } = new URL(baseUrl)
-  const resourceAbsUrl = new URL(resourceUrl, baseUrl)
-  const { pathname: resourcePath } = resourceAbsUrl
-
-  const relativePath = resourcePath.startsWith(basePath)
-    ? resourcePath.slice(basePath.length)
-    : resourcePath
-
-  const normalizedPath = relativePath === '/' || relativePath === ''
-    ? 'index'
-    : relativePath.replace(/^\/+/, '')
-
-  const name = `${baseHost}-${normalizedPath}`.replace(/[^a-zA-Z0-9]/g, '-')
+  const { hostname, pathname } = new URL(resourceUrl, baseUrl)
+  const name = `${hostname}${pathname}`.replace(/[^a-zA-Z0-9]/g, '-')
   return name
 }
 
