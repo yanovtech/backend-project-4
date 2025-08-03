@@ -23,4 +23,21 @@ const makeFileName = (url, ext = '') => {
   return `${name}${ext}`
 }
 
-export { makeFile, makeDir, makeFileName }
+const makeResourceName = (baseUrl, resourceUrl) => {
+  const { hostname: baseHost, pathname: basePath } = new URL(baseUrl)
+  const resourceAbsUrl = new URL(resourceUrl, baseUrl)
+  const { pathname: resourcePath } = resourceAbsUrl
+
+  const relativePath = resourcePath.startsWith(basePath)
+    ? resourcePath.slice(basePath.length)
+    : resourcePath
+
+  const normalizedPath = relativePath === '/' || relativePath === ''
+    ? 'index'
+    : relativePath.replace(/^\/+/, '')
+
+  const name = `${baseHost}-${normalizedPath}`.replace(/[^a-zA-Z0-9]/g, '-')
+  return name
+}
+
+export { makeFile, makeDir, makeFileName, makeResourceName }
