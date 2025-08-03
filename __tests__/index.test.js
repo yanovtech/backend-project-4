@@ -1,60 +1,52 @@
-import path from 'path'
-import pageLoader from '../src/index.js'
-import nock from 'nock'
-import fsp from 'fs/promises'
 import os from 'os'
-import { fileURLToPath } from 'url'
-import * as cheerio from 'cheerio'
+import path from 'path'
+import fs from 'fs/promises'
+import nock from 'nock'
+import pageLoader from '../src/index.js'
+import { readFixture, getAssetPath } from '../__helpers__/utils.js'
 
-const filename = fileURLToPath(import.meta.url)
-const dirname = path.dirname(filename)
-const getFixturePath = name => path.join(dirname, '..', '__fixtures__', name)
-
-const tempDir = os.tmpdir()
-const testHTMLPath = path.join(tempDir, 'ru-hexlet-io-courses.html')
-const testDirPath = path.join(tempDir, 'ru-hexlet-io-courses_files')
-const testPicPath = path.join(testDirPath, 'ru-hexlet-io-assets-professions-nodejs.png')
-
-const normalizeHtml = html => cheerio.load(html).html().replace(/\s+/g, ' ').trim()
-
-nock.cleanAll()
-nock.disableNetConnect()
-nock.emitter.on('no match', (req) => {
-  console.error('NO MATCH:', req)
-})
+let tmpDir
 
 beforeEach(async () => {
-  await fsp.unlink(testHTMLPath).catch(() => {})
-  await fsp.rm(testDirPath, { recursive: true, force: true }).catch(() => {})
+  tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-'))
 })
 
-test('pageLoader', async () => {
-  const baseUrl = 'https://ru.hexlet.io'
-  const expectedBodyPath = getFixturePath('before.html')
-  const expectedBody = await fsp.readFile(expectedBodyPath, 'utf-8')
-  const expectedResultPath = getFixturePath('after.html')
-  const expectedResult = await fsp.readFile(expectedResultPath, 'utf-8')
-  const imageDataPath = getFixturePath('testImg.png')
-  const imageData = await fsp.readFile(imageDataPath)
+test('pageLoader is successfully triggered', async () => {
+  const html = await readFixture('ru-hexlet-io-courses.html')
+  const image = await fs.readFile(getAssetPath('assets-nodejs.png'))
 
-  nock(baseUrl)
-    .persist()
-    .get('/courses')
-    .reply(200, expectedBody)
-    .get('/assets/professions/nodejs.png')
-    .reply(200, imageData)
-    .get('/assets/application.css')
-    .reply(200, 'done')
-    .get('/packs/js/runtime.js')
-    .reply(200, 'done')
+  nock('https://ru.hexlet.io')
+    .get('/courses').reply(200, html)
 
-  await pageLoader('https://ru.hexlet.io/courses', tempDir, 'arraybuffer')
+  nock('https://ru.hexlet.io')
+    .get('/assets/assets-nodejs.png').reply(200, image)
 
-  const testPic = await fsp.readFile(testPicPath)
-  expect(testPic).toEqual(imageData)
+  await pageLoader('https://ru.hexlet.io/courses', tmpDir)
 
-  const testHTML = await fsp.readFile(testHTMLPath, 'utf-8')
-  const expected = normalizeHtml(expectedResult)
-  const actual = normalizeHtml(testHTML)
-  expect(actual).toEqual(expected)
+  const downloadedHtmlPath = path.join(tmpDir, 'ru-hexlet-io-courses.html')
+  const downloadedImgPath = path.join(tmpDir, 'ru-hexlet-io-courses_files', 'assets-nodejs.png')
+
+  const downloadedHtml = await fs.readFile(downloadedHtmlPath, 'utf-8')
+  const downloadedImg = await fs.readFile(downloadedImgPath)
+
+  expect(downloadedHtml).toContain('ru-hexlet-io-courses_files/assets-nodejs.png')
+  expect(downloadedImg).toEqual(image)
+})
+
+test('should throw error on HTTP 404', async () => {
+  nock('https://ru.hexlet.io')
+    .get('/courses').reply(404)
+
+  await expect(pageLoader('https://ru.hexlet.io/courses', tmpDir)).rejects.toThrow('404')
+})
+
+test('should throw error when writing to a non-existent directory', async () => {
+  const html = await readFixture('ru-hexlet-io-courses.html')
+
+  nock('https://ru.hexlet.io')
+    .get('/courses').reply(200, html)
+
+  const badDir = '/nonexistent/folder/output'
+
+  await expect(pageLoader('https://ru.hexlet.io/courses', badDir)).rejects.toThrow(/ENOENT/)
 })

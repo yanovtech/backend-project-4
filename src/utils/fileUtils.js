@@ -1,26 +1,26 @@
 import fsp from 'fs/promises'
 
-const makeFile = (fileName, data) => fsp.writeFile(fileName, data)
-
-const makeDir = dirName => fsp.mkdir(dirName)
-
-const findFormat = (file) => {
-  const parts = file.split('.')
-  const fileName = parts.slice(0, -1).join('.')
-  const format = parts.at(-1)
-  return { fileName, format }
+const makeFile = (fileName, data) => {
+  return fsp.writeFile(fileName, data)
+    .catch((error) => {
+      console.error(`Error writing file ${fileName}:\n   ${error.message}`)
+      throw error
+    })
 }
 
-const makeFileName = (url, acceptedFormat = null) => {
-  const regexp = /[^\w]/g
-  const urlWithOutProtocol = url.split('://')[1]
-  if (acceptedFormat) {
-    return `${urlWithOutProtocol.split(regexp).join('-')}${acceptedFormat}`
-  }
-  else {
-    const { fileName, format } = findFormat(urlWithOutProtocol)
-    return `${fileName.split(regexp).join('-')}.${format}`
-  }
+const makeDir = (dirName) => {
+  return fsp.mkdir(dirName, { recursive: true })
+    .catch((error) => {
+      console.error(`Error creating directory ${dirName}:\n   ${error.message}`)
+      throw error
+    })
+}
+
+const makeFileName = (url, ext = '') => {
+  const { hostname, pathname } = new URL(url)
+  const normalizedPath = pathname === '/' ? '/index' : pathname
+  const name = `${hostname}${normalizedPath}`.replace(/[^\w]/g, '-')
+  return `${name}${ext}`
 }
 
 export { makeFile, makeDir, makeFileName }

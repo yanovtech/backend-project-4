@@ -44,7 +44,7 @@ const updateResourceLinks = (html, baseUrl, assetsDirName) => {
 
       const absoluteUrl = new URL(raw, baseUrl)
       if (absoluteUrl.origin === baseOrigin) {
-        const localFileName = makeFileName(absoluteUrl.href)
+        const localFileName = path.basename(absoluteUrl.pathname)
         const localPath = path.join(assetsDirName, localFileName)
         $(el).attr(attr, localPath)
       }
