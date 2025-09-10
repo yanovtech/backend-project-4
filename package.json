@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "description": "[![Actions Status](https://github.com/yanovtech/backend-project-4/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/yanovtech/backend-project-4/actions)",
   "main": "src/index.js",
+  "bin": {
+    "page-loader": "./bin/page-loader.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -1,4 +1,5 @@
 import fsp from 'fs/promises'
+import path from 'path'
 
 const makeFile = (fileName, data) => {
   return fsp.writeFile(fileName, data)
@@ -25,8 +26,10 @@ const makeFileName = (url, ext = '') => {
 
 const makeResourceName = (baseUrl, resourceUrl) => {
   const { hostname, pathname } = new URL(resourceUrl, baseUrl)
-  const name = `${hostname}${pathname}`.replace(/[^a-zA-Z0-9]/g, '-')
-  return name
+  const ext = path.extname(pathname)
+  const withoutExt = pathname.slice(0, -ext.length) || pathname
+  const name = `${hostname}${withoutExt}`.replace(/[^a-zA-Z0-9]/g, '-')
+  return `${name}${ext}`
 }
 
 export { makeFile, makeDir, makeFileName, makeResourceName }
