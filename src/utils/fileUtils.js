@@ -25,7 +25,8 @@ const makeFileName = (url, ext = '') => {
 }
 
 const makeResourceName = (baseUrl, resourceUrl) => {
-  const { hostname, pathname } = new URL(resourceUrl, baseUrl)
+  const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
+  const { hostname, pathname } = new URL(resourceUrl, normalizedBase)
   const ext = path.extname(pathname)
   const withoutExt = pathname.slice(0, -ext.length) || pathname
   const name = `${hostname}${withoutExt}`.replace(/[^a-zA-Z0-9]/g, '-')
