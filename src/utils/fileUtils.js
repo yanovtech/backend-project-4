@@ -37,13 +37,11 @@ const makeResourceName = (baseUrl, resourceUrl) => {
   const { hostname, pathname } = new URL(resourceUrl, normalizedBase)
 
   const ext = path.extname(pathname)
-  const withoutExt = pathname.slice(0, -ext.length) || pathname
+  const withoutExt = ext ? pathname.slice(0, -ext.length) : pathname
 
-  const name = `${hostname}${withoutExt}`.replace(/[^a-zA-Z0-9]/g, '-')
-  const fileName = `${name}${ext}`
+  const safeName = `${hostname}${withoutExt}`.replace(/[^a-zA-Z0-9]/g, '-')
 
-  console.log('[fileUtils] makeResourceName:', resourceUrl, '→', fileName)
-  return fileName
+  return ext ? `${safeName}${ext}` : safeName
 }
 
 export { makeFile, makeDir, makeFileName, makeResourceName }
